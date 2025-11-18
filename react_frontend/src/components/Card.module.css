@@ -4,18 +4,134 @@
   box-shadow: 0 1.5px 8px 0 rgba(59,130,246,0.09), 0 0 0 1px #e5e7eb;
   padding: 1.5rem;
   margin: 1rem 0;
-  transition: box-shadow 0.18s, transform 0.18s;
+  transition: box-shadow 0.18s, transform 0.18s, border 0.13s, background 0.18s;
   color: var(--color-text);
   outline: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
-.card:hover, .card:focus-visible {
-  box-shadow: 0 4px 16px 0 rgba(59,130,246,0.17), 0 0 0 2px var(--color-primary);
-  transform: translateY(-2px) scale(1.01);
+
+.card[data-interactive="true"]:hover,
+.card[data-interactive="true"]:focus-visible {
+  box-shadow: 0 4px 16px 0 rgba(59,130,246,0.22), 0 0 0 2.2px var(--color-primary);
+  transform: translateY(-2px) scale(1.008);
+  cursor: pointer;
 }
+
+.card[data-disabled="true"],
+.card.disabled {
+  opacity: 0.48;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  filter: grayscale(0.13);
+  box-shadow: 0 1.2px 6px 0 rgba(59,130,246,0.07), 0 0 0 1px #e5e7eb;
+}
+
+.card.selected,
+.card[data-selected="true"] {
+  box-shadow: 0 0 0 3px var(--color-success), 0 2px 14px 0 rgba(59,130,246,0.18);
+}
+
+.variant__default,
+.card[data-variant="default"] {
+  background: #fff;
+  border: none;
+  box-shadow: 0 1.5px 8px 0 rgba(59,130,246,0.10), 0 0 0 1px #e5e7eb;
+}
+.variant__outlined,
+.card[data-variant="outlined"] {
+  background: #fff;
+  border: 1.5px solid var(--color-primary);
+  box-shadow: 0 2px 8px 0 rgba(59,130,246,0.07);
+}
+.variant__elevated,
+.card[data-variant="elevated"] {
+  background: #fff;
+  box-shadow: 0 8px 34px 0 rgba(59,130,246,0.14), 0 2.5px 16px 0 rgba(59,130,246,0.08);
+  border: none;
+}
+
+.size__sm,
+.card.size__sm,
+.card[data-size="sm"] {
+  padding: 0.7rem 1rem;
+  font-size: 0.97rem;
+}
+.size__md,
+.card.size__md,
+.card[data-size="md"] {
+  padding: 1.5rem;
+  font-size: 1.07rem;
+}
+.size__lg,
+.card.size__lg,
+.card[data-size="lg"] {
+  padding: 2.3rem 2rem;
+  font-size: 1.18rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1.1rem;
+  margin-bottom: 0.77em;
+}
+.title {
+  font-weight: 700;
+  font-size: 1.18rem;
+  color: var(--color-primary);
+  margin: 0 0 0.10em 0;
+  flex: 1 1 auto;
+}
+.subtitle {
+  color: var(--color-secondary);
+  font-size: 0.99rem;
+  font-weight: 500;
+  margin: 0 0 0 0.14em;
+  opacity: 0.75;
+}
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.6em;
+}
+.media {
+  margin-bottom: 1rem;
+  border-radius: 9px 9px 0 0;
+  overflow: hidden;
+  width: 100%;
+  max-height: 230px;
+  object-fit: cover;
+}
+.body {
+  flex: 1 1 auto;
+  width: 100%;
+}
+.footer {
+  border-top: 1px solid var(--color-secondary);
+  opacity: 0.82;
+  margin-top: 1rem;
+  padding-top: 0.6rem;
+  font-size: 0.98em;
+  color: var(--color-secondary);
+}
+
+/* Focus ring for accessibility */
+.card:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
 @media (max-width: 600px) {
-  .card {
-      padding: 1rem;
-      margin-left: 0;
-      margin-right: 0;
+  .card,
+  .size__md,
+  .card.size__md,
+  .card[data-size="md"] {
+    padding: 1rem;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
