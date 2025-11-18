@@ -5,29 +5,32 @@ import styles from "./Button.module.css";
 /**
  * PUBLIC_INTERFACE
  * Enhanced, accessible Button component for React.
- * Supports: variants, sizes, compact tokens, icon alignment, link visual style, improved focus, aria-label forwarding, autoFocus,
- * safe anchor handling, aria-busy when loading, disabled/loading distinction, data-state attributes, and backward-compatible API.
+ * Supports variants, sizes, link visual style, loading, disabled, loadingSpinnerOnly, fullWidth,
+ * start/end icons with alignment, as/href/type prop logic, autoFocus, aria-label forwarding, tooltip, and all a11y.
  *
- * @param {string} variant - 'primary'|'secondary'|'outline'|'ghost'|'danger'|'link' (visual only) - default: "primary"
- * @param {string} size - 'sm'|'md'|'lg'|'compact'
- * @param {boolean} loading - Show spinner and disable interaction
- * @param {boolean} disabled - Disable interaction
- * @param {boolean} fullWidth - Expand to container width
- * @param {React.ReactNode} startIcon - Icon at start of button
- * @param {React.ReactNode} endIcon - Icon at end of button
- * @param {string} as - 'button'|'a'
- * @param {string} href - Link target if as='a'
- * @param {string} type - Button type if as='button' (button|submit|reset)
- * @param {Function} onClick - Click handler
- * @param {string} className - Additional className
- * @param {React.ReactNode} children - Button content
- * @param {string} ariaLabel - aria-label for accessibility; forwarded to root
- * @param {boolean} autoFocus - If true, autofocuses button on mount
+ * @param {string}  [variant="primary"]     "primary"|"secondary"|"outline"|"ghost"|"danger"|"link" (visual only)
+ * @param {string}  [size="md"]             "sm"|"md"|"lg"|"compact"
+ * @param {boolean} [loading]               Show spinner and disable interaction
+ * @param {boolean} [loadingSpinnerOnly]    If true, only spinner is shown and text visually hidden
+ * @param {boolean} [disabled]              Disable interaction
+ * @param {boolean} [fullWidth]             Expand to container width
+ * @param {React.ReactNode} [startIcon]     Icon at start of button
+ * @param {React.ReactNode} [endIcon]       Icon at end of button
+ * @param {React.ReactNode} [children]      Button content (text/element)
+ * @param {string} [as="button"]            'button' or 'a' (anchor)
+ * @param {string} [href]                   Link target if as='a'
+ * @param {string} [type="button"]          Button type if as='button' (button|submit|reset)
+ * @param {Function} [onClick]              Click handler
+ * @param {string} [className]              Additional className
+ * @param {string} ["aria-label"]           aria-label for accessibility; forwarded to root
+ * @param {boolean} [autoFocus]             If true, autofocuses button on mount
+ * @param {string} [tooltip]                Optional tooltip (title/aria-describedby for accessibility)
  *
  * Usage notes:
- * - aria-label is forwarded so users can label icon-only or ambiguous buttons
- * - autoFocus prop will focus button/link on mount (when not loading/disabled)
- * - Use variant="link" for a button matching link style (does not affect semantics)
+ *  - aria-label is forwarded so users can label icon-only or ambiguous buttons.
+ *  - autoFocus prop will focus button/link on mount (when not loading/disabled).
+ *  - Use tooltip for visible+accessible tooltips. Adds title/aria-describedby.
+ *  - type defaults to "button" for <button> to avoid accidental submits.
  */
 
 const Button = forwardRef(function Button(
@@ -35,6 +38,7 @@ const Button = forwardRef(function Button(
     variant = "primary",
     size = "md",
     loading = false,
+    loadingSpinnerOnly = false,
     disabled = false,
     fullWidth = false,
     startIcon,
@@ -47,6 +51,7 @@ const Button = forwardRef(function Button(
     className = "",
     "aria-label": ariaLabel,
     autoFocus = false,
+    tooltip,
     ...rest
   },
   forwardedRef
@@ -54,7 +59,7 @@ const Button = forwardRef(function Button(
   const localRef = useRef(null);
   const ref = forwardedRef || localRef;
 
-  // Handle autoFocus prop
+  // Handle autoFocus prop on mount (focus if not disabled/loading)
   useEffect(() => {
     if (
       autoFocus &&
@@ -67,38 +72,51 @@ const Button = forwardRef(function Button(
     }
   }, [autoFocus, ref, disabled, loading]);
 
+  // Internal state checks
   const isLink = as === "a";
   const isCompact = size === "compact";
-  // 'link' variant: visual only, semantics do NOT change (button by default)
   const isLinkVisual = variant === "link";
   const isDisabled = !!disabled || !!loading;
+  const showSpinnerOnly = !!loading && !!loadingSpinnerOnly;
+  const showSpinner = !!loading;
 
-  // Accessible label
-  const mergedAriaLabel = ariaLabel || rest["ariaLabel"];
-  // Set data-state and data-loading for finer CSS hooks
+  // Merge aria-label
+  const mergedAriaLabel = ariaLabel || rest["ariaLabel"] || undefined;
+
+  // Tooltip support: use title & aria-describedby on content
+  const tooltipId = tooltip ? "button-tooltip-" + Math.random().toString(36).slice(2, 10) : undefined;
+
+  // Data attributes for easier styling hooks
   const dataAttrs = {
     "data-variant": variant,
     "data-size": size,
     "data-loading": !!loading ? "true" : undefined,
     "data-disabled": isDisabled ? "true" : undefined,
-    "data-state": isDisabled
-      ? "disabled"
-      : loading
-      ? "loading"
-      : undefined,
+    "data-state":
+      isDisabled
+        ? "disabled"
+        : loading
+        ? "loading"
+        : undefined,
   };
 
-  // ARIA attributes: always set role=button for links; aria-busy during loading
+  // ARIA props set
   const ariaProps = {
     "aria-label": mergedAriaLabel,
     "aria-disabled": isDisabled ? true : undefined,
     "aria-busy": loading ? true : undefined,
+    ...(showSpinnerOnly && { "aria-live": "polite" }),
+    ...(tooltip
+      ? {
+          "aria-describedby": tooltipId,
+        }
+      : {}),
   };
 
   // Compose CSS class tokens, compact/visual mapping
   const btnClass = [
     styles.button,
-    styles[isLinkVisual ? "link" : variant] || styles.primary, // treat unknown as primary
+    styles[isLinkVisual ? "link" : variant] || styles.primary,
     isCompact ? styles.compact : styles[size] || styles.md,
     fullWidth ? styles.fullWidth : "",
     isDisabled ? styles.disabled : "",
@@ -108,7 +126,7 @@ const Button = forwardRef(function Button(
     .filter(Boolean)
     .join(" ");
 
-  // Shared handler: prevents interaction if disabled or loading
+  // Click handler: disables when loading/disabled
   function handleClick(e) {
     if (isDisabled) {
       e.preventDefault();
@@ -135,9 +153,9 @@ const Button = forwardRef(function Button(
     ...ariaProps,
     ...dataAttrs,
     ...rest,
-    "aria-disabled": isDisabled, // always reflect computed disabled
     // Note: autoFocus is not passed to element because we handle it manually for links.
     onClick: handleClick,
+    ...(tooltip ? { title: tooltip } : {}),
   };
   if (mergedAriaLabel) {
     commonProps["aria-label"] = mergedAriaLabel;
@@ -152,36 +170,22 @@ const Button = forwardRef(function Button(
     if (rest.target) {
       commonProps.target = rest.target;
     }
-    // When anchor is disabled or loading, prevent tab focus
     commonProps.tabIndex = isDisabled ? -1 : rest.tabIndex ?? 0;
-    // Also set onKeyDown: ENTER/SPACE fire click unless disabled
+    // Keyboard a11y for disabled anchor: block
     commonProps.onKeyDown = (e) => {
       if (isDisabled) {
         e.preventDefault();
         return false;
       }
-      // Let browser handle
       if (typeof rest.onKeyDown === "function") rest.onKeyDown(e);
     };
   }
 
-  // Icon sizing map (align consistently with button height)
-  const iconSizeMap = {
-    sm: 16,
-    md: 20,
-    lg: 24,
-    compact: 14,
-  };
-  const iconEmMap = {
-    sm: "1.15em",
-    md: "1.28em",
-    lg: "1.4em",
-    compact: "1em",
-  };
+  // Icon sizing: always align, scale with size tokens
+  const iconSizeMap = { sm: 16, md: 20, lg: 24, compact: 14 };
+  const iconEmMap = { sm: "1.15em", md: "1.28em", lg: "1.4em", compact: "1em" };
   const finalIconSize = iconSizeMap[size] || 20;
   const finalIconEm = iconEmMap[size] || "1.28em";
-
-  // Styling for icon slot: always center, align, auto-size
   const iconSlotStyle = {
     display: "inline-flex",
     alignItems: "center",
@@ -193,32 +197,59 @@ const Button = forwardRef(function Button(
     fontSize: finalIconEm,
     verticalAlign: "middle",
     pointerEvents: "none",
+    lineHeight: "1em",
   };
 
-  // Compose children with icon slots (icon always present in space for alignment)
+  // Compose accessible text span, properly visually hide if spinnerOnly
+  const LabelContent = (
+    <span
+      className={
+        (loading ? styles.loadingText : "") +
+        (showSpinnerOnly ? " " + styles.visuallyHidden : "")
+      }
+      data-slot="label"
+      id={tooltipId}
+      style={{
+        transition: "opacity 0.15s linear",
+        ...(showSpinnerOnly
+          ? {
+              position: "absolute",
+              width: "1px",
+              height: "1px",
+              overflow: "hidden",
+              clip: "rect(1px, 1px, 1px, 1px)",
+              whiteSpace: "nowrap",
+              padding: 0,
+              border: 0,
+            }
+          : {}),
+      }}
+      aria-live={showSpinnerOnly ? "polite" : undefined}
+      aria-atomic={showSpinnerOnly ? "true" : undefined}
+    >
+      {children}
+    </span>
+  );
+
+  // Compose children with icon/label slots & loading spinner
   const content = (
     <>
-      {/* Start Icon */}
-      {startIcon && (
+      {startIcon && !showSpinnerOnly && (
         <span
           className={styles.startIcon}
           style={iconSlotStyle}
           aria-hidden="true"
           data-slot="start"
         >
-          {React.cloneElement(
-            startIcon,
-            {
-              width: startIcon.props.width || finalIconSize,
-              height: startIcon.props.height || finalIconSize,
-              focusable: "false",
-              "aria-hidden": "true",
-            }
-          )}
+          {React.cloneElement(startIcon, {
+            width: startIcon.props.width || finalIconSize,
+            height: startIcon.props.height || finalIconSize,
+            focusable: "false",
+            "aria-hidden": "true",
+          })}
         </span>
       )}
-      {/* Loading Spinner */}
-      {loading && (
+      {showSpinner && (
         <span
           className={styles.spinnerWrapper}
           style={iconSlotStyle}
@@ -228,49 +259,35 @@ const Button = forwardRef(function Button(
           <span className={styles.spinner} />
         </span>
       )}
-      {/* Children always shown; opacity is reduced when loading */}
-      <span
-        className={loading ? styles.loadingText : undefined}
-        data-slot="label"
-        style={{ transition: "opacity 0.15s linear" }}
-      >
-        {children}
-      </span>
-      {/* End Icon */}
-      {endIcon && (
+      {LabelContent}
+      {endIcon && !showSpinnerOnly && (
         <span
           className={styles.endIcon}
           style={iconSlotStyle}
           aria-hidden="true"
           data-slot="end"
         >
-          {React.cloneElement(
-            endIcon,
-            {
-              width: endIcon.props.width || finalIconSize,
-              height: endIcon.props.height || finalIconSize,
-              focusable: "false",
-              "aria-hidden": "true",
-            }
-          )}
+          {React.cloneElement(endIcon, {
+            width: endIcon.props.width || finalIconSize,
+            height: endIcon.props.height || finalIconSize,
+            focusable: "false",
+            "aria-hidden": "true",
+          })}
         </span>
       )}
     </>
   );
 
-  // Render as anchor (link) or button
+  // Render as <a> (anchor) or <button>
   if (isLink) {
-    return (
-      <a {...commonProps}>{content}</a>
-    );
+    return <a {...commonProps}>{content}</a>;
   }
-  // Button: disabled attribute set only if native <button>
+  // type always defaults to 'button' unless overridden
   return (
     <button
       {...commonProps}
-      type={type}
+      type={type || "button"}
       disabled={isDisabled}
-      // tabIndex, aria-label, autoFocus, etc., all handled above
     >
       {content}
     </button>
@@ -280,7 +297,10 @@ const Button = forwardRef(function Button(
 // PUBLIC_INTERFACE
 Button.displayName = "Button";
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * Button prop types and documentation.
+ */
 Button.propTypes = {
   variant: PropTypes.oneOf([
     "primary",
@@ -288,13 +308,14 @@ Button.propTypes = {
     "outline",
     "ghost",
     "danger",
-    "link", // link (inherited from html <a>)
+    "link"
   ]),
   size: PropTypes.oneOf(["sm", "md", "lg", "compact"]),
   loading: PropTypes.bool,
+  loadingSpinnerOnly: PropTypes.bool,
   disabled: PropTypes.bool,
   fullWidth: PropTypes.bool,
-  startIcon: PropTypes.element, // now expect React element for better sizing
+  startIcon: PropTypes.element,
   endIcon: PropTypes.element,
   as: PropTypes.oneOf(["button", "a"]),
   href: PropTypes.string,
@@ -304,6 +325,7 @@ Button.propTypes = {
   className: PropTypes.string,
   "aria-label": PropTypes.string,
   autoFocus: PropTypes.bool,
+  tooltip: PropTypes.string,
 };
 
 export default Button;
