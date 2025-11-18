@@ -19,6 +19,199 @@
   vertical-align: middle;
   user-select: none;
   text-decoration: none;
+  min-width: 0;
+}
+
+/* Variants */
+.primary {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+}
+.primary:hover:not(.disabled):not([aria-disabled="true"]),
+.primary:focus-visible:not(.disabled):not([aria-disabled="true"]) {
+  background: #2563eb;
+}
+
+.secondary {
+  background: var(--color-secondary);
+  color: #fff;
+  border: none;
+}
+.secondary:hover:not(.disabled):not([aria-disabled="true"]),
+.secondary:focus-visible:not(.disabled):not([aria-disabled="true"]) {
+  background: #334155;
+}
+
+.outline {
+  background: #fff;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+.outline:hover:not(.disabled):not([aria-disabled="true"]),
+.outline:focus-visible:not(.disabled):not([aria-disabled="true"]) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: none;
+}
+.ghost:hover:not(.disabled):not([aria-disabled="true"]),
+.ghost:focus-visible:not(.disabled):not([aria-disabled="true"]) {
+  background: rgba(59,130,246,0.07);
+}
+
+.danger {
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+}
+.danger:hover:not(.disabled):not([aria-disabled="true"]),
+.danger:focus-visible:not(.disabled):not([aria-disabled="true"]) {
+  filter: brightness(0.93);
+  box-shadow: 0 1px 8px 0 rgba(230, 78, 64,0.20);
+}
+
+/* Link variant (button visual as a text link) */
+.link {
+  background: none !important;
+  color: var(--color-primary) !important;
+  border: none;
+  box-shadow: none;
+  text-decoration: underline;
+  font-weight: 500;
+  padding: 0 !important;
+  min-width: 0;
+}
+.link:hover:not(.disabled):not([aria-disabled="true"]),
+.link:focus-visible:not(.disabled):not([aria-disabled="true"]) {
+  color: var(--color-success);
+  text-decoration: underline;
+  background: none;
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
+}
+
+/* Sizes */
+.sm {
+  font-size: 0.88rem;
+  padding: 0.35em 1em;
+  min-height: 2em;
+}
+.md {
+  font-size: 1rem;
+  padding: 0.5em 1.5em;
+  min-height: 2.5em;
+}
+.lg {
+  font-size: 1.13rem;
+  padding: 0.75em 2.2em;
+  min-height: 3em;
+}
+/* Compact size: reduced padding and size for dense UI (e.g. toolbar) */
+.compact {
+  font-size: 0.89rem;
+  padding: 0.19em 0.75em;
+  min-height: 1.85em;
+  height: 1.85em;
+  line-height: 1.15;
+}
+
+/* Full width button */
+.fullWidth {
+  width: 100%;
+  display: flex;
+}
+
+/* Consistent icon slot: alignment and sizing for sm/md/lg/compact */
+.startIcon,
+.endIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* width, height are set inline via style in component for best scaling */
+  vertical-align: middle;
+  pointer-events: none;
+}
+.spinnerWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.3em;
+  /* width, height inline from style */
+  vertical-align: middle;
+}
+
+/* Spinner: always styled for visibility across variants */
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid #fff;
+  border-top: 2px solid var(--color-secondary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg);}
+}
+
+.loadingText {
+  opacity: 0.7;
+  transition: opacity 0.2s linear;
+}
+
+/* Disabled and loading */
+.disabled, .button:disabled, .button[aria-disabled="true"], .loading {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  box-shadow: none;
+  filter: grayscale(0.1);
+}
+
+/* Improved focus ring - CSS variable fallback; data-state for stronger selectors */
+.button:focus-visible, .button[data-state="focused"], .button[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--color-success);
+  outline-offset: 2px;
+  z-index: 1;
+}
+.button[data-state="loading"], .button[data-loading="true"] {
+  opacity: 0.69;
+}
+
+.button::-moz-focus-inner {
+  border: 0;
+}
+
+/* Remove link styling for anchor rendering */
+.button[role="button"] {
+  text-decoration: none;
+}
+
+/* Data attributes for state styling */
+.button[data-state="loading"] { opacity: 0.7; }
+.button[data-state="disabled"] { filter: grayscale(0.12); opacity: 0.54; }
+
+/* Compact icon alignment fix for compact size: reduces padding/margin */
+.compact .startIcon,
+.compact .endIcon,
+.button.compact .startIcon,
+.button.compact .endIcon {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 700px) {
+  .button {
+    font-size: 1rem;
+    padding: 0.5em 1em;
+  }
 }
 
 /* Variants */
