@@ -1,0 +1,24 @@
+:root {
+  --color-primary: #3b82f6;
+  --color-success: #06b6d4;
+  --color-secondary: #64748b;
+  --color-error: hsl(0 84% 60%);
+  --color-text: #111827;
+  --gradient-bg: linear-gradient(135deg, rgba(59,130,246,0.1), #f9fafb);
+
+  --font-main: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  color: var(--color-text);
+  background: var(--gradient-bg);
+  font-family: var(--font-main);
+}
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+a:focus, button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
